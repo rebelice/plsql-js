@@ -1,0 +1,28 @@
+const { completionsFor } = require("./completion");
+
+function validateCompletionsFor(text, expectedItems) {
+    const itFn = it;
+    const cursorChar = '|';
+    itFn(text, () => {
+        const [line, column] = getCursorPosition(text, cursorChar);
+        const completions = completionsFor(text.replace(cursorChar, ''), line, column);
+        
+        console.info("completions:", completions);
+        // NOTE: we don't use Sets here because when there are failures, the error
+        // message is not useful
+        expectedItems.forEach((item) => expect(completions).toContainEqual(item));
+        completions.forEach((item) => expect(expectedItems).toContainEqual(item));
+    });
+}
+
+function getCursorPosition(text, cursorChar) {
+    for (const [line, lineText] of text.split('\n').entries()) {
+      const column = lineText.indexOf(cursorChar);
+      if (column >= 0) return [line + 1, column + 1];
+    }
+    throw new Error(`Cursor ${cursorChar} not found in ${text} !`);
+}
+
+describe('Code completion', () => {
+    validateCompletionsFor('SELECT Id FROM |', [])
+});
