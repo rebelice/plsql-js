@@ -11,7 +11,8 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "antlr4": "^4.13.0"
+    "antlr4": "^4.13.0",
+    "antlr4-shulk": "github:DanielBV/antlr4-shulk"
   },
   "devDependencies": {
     "@babel/core": "^7.22.10",
