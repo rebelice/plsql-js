@@ -1,0 +1,29 @@
+{
+  "name": "plsql-js",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vue-tsc && vite build",
+    "preview": "vite preview",
+    "postinstall": "sh scripts/copy-antlr4.sh"
+  },
+  "dependencies": {
+    "@types/antlr4": "4.11.2",
+    "antlr4": "^4.13.0",
+    "antlr4-c3": "^3.1.1",
+    "antlr4ts": "0.5.0-alpha.4",
+    "antlr4ts-browser": "0.5.0-alpha.4",
+    "antlr4ts-cli": "0.5.0-alpha.4",
+    "assert": "^2.0.0",
+    "util": "^0.12.5",
+    "vue": "^3.3.4"
+  },
+  "devDependencies": {
+    "@vitejs/plugin-vue": "^4.2.3",
+    "typescript": "^5.0.2",
+    "vite": "^4.4.5",
+    "vue-tsc": "^1.8.5"
+  }
+}

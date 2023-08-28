@@ -5,7 +5,8 @@
   "main": "index.js",
   "scripts": {
     "test": "jest",
-    "build-parser": "antlr -Dlanguage=JavaScript -package parser ./src/parser/*.g4"
+    "build-parser-ts": "antlr4 -Dlanguage=TypeScript -o frontend/src/parser-antlr4-ts -package parser ./*.g4",
+    "build-parser-js": "antlr4 -Dlanguage=JavaScript -o frontend/src/parser-antlr4-js -package parser ./*.g4"
   },
   "keywords": [],
   "author": "",
