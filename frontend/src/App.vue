@@ -4,6 +4,7 @@ import { test as testAntlr4Ts } from './test-antlr4-ts';
 import { test as testAntlr4Js } from './test-antlr4-js';
 import { test as testAntlr4Java } from './test-java';
 import { test as testAntlrTree } from './test-antlr4-full-tree';
+import { test as testIntelligence } from './test-intelligence';
 
 const rawInput = ref('select u.name, u.sex, u.age from sys.user u|');
 const inputString = computed(() => {
@@ -28,6 +29,7 @@ const caretIndex = computed(() => {
     </button>
     <button @click="testAntlr4Java()">Test antlr4 Java Grammar</button>
     <button @click="testAntlrTree(inputString)">Test antlr4 parse full tree</button>
+    <button @click="testIntelligence(inputString, caretIndex)">Test intelligence suggestion</button>
   </div>
   <div>Click test button and see what console says.</div>
 </template>
