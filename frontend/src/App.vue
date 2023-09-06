@@ -6,7 +6,7 @@ import { test as testAntlr4Java } from './test-java';
 import { test as testAntlrTree } from './test-antlr4-full-tree';
 import { test as testIntelligence } from './test-intelligence';
 
-const rawInput = ref('select u.name, u.sex, u.age from sys.user u|');
+const rawInput = ref('select u.name| from sys.user u');
 const inputString = computed(() => {
   return rawInput.value.replace('|', '');
 });

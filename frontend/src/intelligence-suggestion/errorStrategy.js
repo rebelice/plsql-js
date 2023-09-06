@@ -13,7 +13,7 @@ export class PlSqlErrorStrategy extends DefaultErrorStrategy {
   getErrorRecoverySet(recognizer) {
     const defaultRecoverySet = super.getErrorRecoverySet(recognizer);
     const currentRuleIndex = recognizer._ctx.ruleIndex;
-    if (currentRuleIndex === PlSqlParser.RULE_select_list_elements) {
+    if (currentRuleIndex === PlSqlParser.RULE_query_block) {
       const plsqlFieldFollowSet = new IntervalSet();
       plsqlFieldFollowSet.addOne(PlSqlLexer.COMMA);
       plsqlFieldFollowSet.addOne(PlSqlLexer.FROM);
