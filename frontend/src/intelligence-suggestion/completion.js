@@ -59,11 +59,16 @@ class FromClauseListener extends PlSqlParserListener {
       const text = ctx.parser._input.getText({start: ctx.start, stop: ctx.stop});
       console.log('text', text)
       let tokens = [];
+      let periods = 0;
       
       for (let i = ctx.start.tokenIndex; i <= ctx.stop.tokenIndex; i++) {
         const token = ctx.parser._input.get(i);
         console.log('token', token)
-        if (token.type === PlSqlLexer.PERIOD || token.channel !== antlr4.Lexer.DEFAULT_TOKEN_CHANNEL) {
+        if (token.channel !== antlr4.Lexer.DEFAULT_TOKEN_CHANNEL) {
+          continue
+        }
+        if (token.type === PlSqlLexer.PERIOD) {
+          periods = periods+1
           continue
         }
         if (token.type === PlSqlLexer.DELIMITED_ID) {
@@ -73,6 +78,9 @@ class FromClauseListener extends PlSqlParserListener {
         }
       }
       
+      while (periods >= tokens.length) {
+        tokens.push('')
+      }
       console.log('tokens', tokens)
       if (tokens.length === 1) {
         this.suggestion.push({
