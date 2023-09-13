@@ -1,7 +1,7 @@
 import antlr4 from 'antlr4';
 import PlSqlLexer from './parser-antlr4-ts/PlSqlLexer';
 import PlSqlParser, { Sql_scriptContext } from './parser-antlr4-ts/PlSqlParser';
-import { findCursorTokenIndex } from './intelligence-suggestion/completion';
+import { completion, findCursorTokenIndex } from './intelligence-suggestion/completion';
 
 export type CursorPosition = { line: number; column: number };
 
@@ -34,5 +34,6 @@ export const test = (inputString: string, caretIndex: number) => {
     return
   }
   
-  
+  const suggestion = completion(tree, completionTokenIndex)
+  console.log('suggestion:', suggestion)
 };

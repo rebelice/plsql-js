@@ -1,4 +1,6 @@
 import PlSqlLexer from '../parser-antlr4-ts/PlSqlLexer';
+import PlSqlParserListener from '../parser-antlr4-js/PlSqlParserListener';
+import antlr4 from 'antlr4';
 
 const possibleIdentifierPrefix = /[\w]$/;
 const lineSeparator = /\n|\r|\r\n/g;
@@ -41,6 +43,131 @@ export function findCursorTokenIndex(tokenStream, cursor) {
   return undefined;
 }
 
-export function completion(tree, completionTokenIndex) {
+class FromClauseListener extends PlSqlParserListener {
+  constructor(tokenIndex) {
+    super();
+    this.fromClause = [];
+    this.suggestion = [];
+    this.tokenIndex = tokenIndex;
+  }
   
+  enterSelect_list_elements(ctx) {
+    console.log('enterSelect_list_elements', ctx)
+    console.log(ctx.getText())
+    console.log(ctx.start, ctx.stop)
+    if (ctx.start.tokenIndex <= this.tokenIndex && this.tokenIndex <= ctx.stop.tokenIndex) {
+      const text = ctx.parser._input.getText({start: ctx.start, stop: ctx.stop});
+      console.log('text', text)
+      let tokens = [];
+      
+      for (let i = ctx.start.tokenIndex; i <= ctx.stop.tokenIndex; i++) {
+        const token = ctx.parser._input.get(i);
+        console.log('token', token)
+        if (token.type === PlSqlLexer.PERIOD || token.channel !== antlr4.Lexer.DEFAULT_TOKEN_CHANNEL) {
+          continue
+        }
+        if (token.type === PlSqlLexer.DELIMITED_ID) {
+          tokens.push(token.text.slice(1, -1))
+        } else {
+          tokens.push(token.text.toUpperCase())
+        }
+      }
+      
+      console.log('tokens', tokens)
+      if (tokens.length === 1) {
+        this.suggestion.push({
+          field: tokens[0],
+        });
+      } else if (tokens.length === 2) {
+        this.suggestion.push({
+          field: tokens[1],
+          table: tokens[0],
+        });
+      } else if (tokens.length === 3) {
+        this.suggestion.push({
+          field: tokens[2],
+          table: tokens[1],
+          schema: tokens[0],
+        });
+      }
+    }
+  }
+  
+  enterFrom_clause(ctx) {
+    // TODO: handle sub-query and join.
+    console.log('enterFrom_clause', ctx)
+    console.log(ctx.table_ref_list())
+    console.log(ctx.table_ref_list().table_ref_list())
+    console.log(ctx.getText())
+    for (let i = 0; i < ctx.table_ref_list().table_ref_list().length; i++) {
+      const tableRef = ctx.table_ref_list().table_ref(i);
+      let tableItem = {
+        alias: "",
+        table: "",
+        schema: "",
+      }
+      const tableViewName = tableRef.table_ref_aux().table_ref_aux_internal().dml_table_expression_clause()?.tableview_name();
+      if (tableViewName) {
+        if (tableViewName.id_expression()) {
+          tableItem.schema = normalizeIdentifier(tableViewName.identifier());
+          tableItem.table = normalizeIDExpression(tableViewName.id_expression());
+        } else if (tableViewName.identifier()) {
+          tableItem.table = normalizeIdentifier(tableViewName.identifier());
+        }
+      }
+      if (tableRef.table_ref_aux().table_alias()) {
+        tableItem.alias = normalizeTableAlias(tableRef.table_ref_aux().table_alias());
+      }
+      if (tableItem.table !== "" || tableItem.alias !== "" || tableItem.schema !== "") {
+        this.fromClause.push(tableItem);
+      }
+      console.log('tableItem', tableItem)
+    }
+  }
+  
+  insteadOfAlias(ctx) {
+    for (let i = 0; i < this.suggestion.length; i++) {
+      for (let j = 0; j < this.fromClause.length; j++) {
+        if (this.suggestion[i].table === this.fromClause[j].alias) {
+          this.suggestion[i].table = this.fromClause[j].table;
+          this.suggestion[i].schema = this.fromClause[j].schema;
+          break
+        }
+      }
+    }
+  }
+}
+
+export function normalizeIDExpression(idExpression) {
+  if (!idExpression) return undefined;
+  if (idExpression.regular_id()) {
+    return idExpression.regular_id().getText().toUpperCase();
+  }
+  if (idExpression.DELIMITED_ID()) {
+    // trim the double quotes
+    return idExpression.DELIMITED_ID().getText().slice(1, -1);
+  }
+}
+
+export function normalizeIdentifier(identifier) {
+  return normalizeIDExpression(identifier.id_expression());
+}
+
+export function normalizeTableAlias(tableAlias) {
+  if (!tableAlias) return undefined;
+  if (tableAlias.identifier()) {
+    return normalizeIdentifier(tableAlias.identifier());
+  }
+  if (tableAlias.quoted_string()) {
+    return tableAlias.quoted_string().getText().slice(1, -1);
+  }
+}
+
+export function completion(tree, completionTokenIndex) {
+  const listener = new FromClauseListener(completionTokenIndex);
+  console.log('start walk', tree, listener)
+  antlr4.tree.ParseTreeWalker.DEFAULT.walk(listener, tree);
+  listener.insteadOfAlias();
+  console.log('listener', listener);
+  return {suggestion: listener.suggestion, fromClause: listener.fromClause};
 }
